@@ -1,0 +1,93 @@
+# Business Problem: Predicting the price of Used Toyota Corolla 
+# Automobiles. 
+# A large Toyota car dealership offers purchasers of new cars,
+# the option to buy their used car as part of a trade-in. In particular,
+# a new promotion promises to pay high prices for the used Toyota Corolla
+# cars for purchasers of a new car. The dealers then sell the used car for
+# a small profit. To ensure a reasonable profit, the dealer needs to be able
+# to predict the price that the dealership will get for the used cars. 
+# For that reason, data was collected on all previous sales of used Toyota
+# Corollas at the dealership. The goal is to predict the price of a used 
+# Toyota Corolla based on its age.  Age is given in months.
+
+rm(list=ls(all=TRUE))
+setwd("E:/Insofe/2-DataModeling/1-LinearRegression -Jan 14 and Jan 15 Labday/Jan 14 - Linear Regressions Class 1")
+data<-read.csv("Toyota_SimpleReg.csv",header=T)
+names(data)
+str(data)
+# drop the Id, model attributes 
+data = data[,-c(1,2)]
+summary(data)
+
+# correlation between the attributes
+cor(data)
+plot(data$Age_12_16,data$Price)
+
+library(ggplot2)
+ggplot(data,aes(Age_12_16,Price))+
+  geom_smooth(method="lm",size=1,color="blue")+
+  geom_point(size=2)+theme_bw()
+# geompoint-size = 2 to increase the size of the data points
+# geomp_smooth - size = 1 to increase the line thickness
+
+#Split the data into train and test data sets
+rows=seq(1,nrow(data),1)
+set.seed(123)
+trainRows=sample(rows,(70*nrow(data))/100)
+train = data[trainRows,] 
+test = data[-trainRows,]
+
+# Linear regression model
+LinReg1<-lm(Price~Age_12_16,data=train)
+summary(LinReg1)
+coefficients(LinReg1)
+
+#Look at the errors
+plot(LinReg1)
+
+#Estimate 'Price', if 'Age_12_16' is 60
+as.numeric(coefficients(LinReg1)[1]+coefficients(LinReg1)[2]*60)
+
+# Using "predict" for this single point
+check = data.frame(Age_12_16=90)
+
+
+check
+predict(LinReg1, check)
+
+library(DMwR)
+#Error verification on the entire train data
+LinReg1$fitted.values
+compare = cbind(train,LinReg1$fitted.values)
+regr.eval(train$Price, LinReg1$fitted.values) 
+write.csv(compare,"abc.csv") #save and calculate MAPE in excel
+
+#Error verification on test data
+Pred <- predict(object = LinReg1,newdata = test)
+regr.eval(test$Price, Pred)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
